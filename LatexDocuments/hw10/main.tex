@@ -1,0 +1,394 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+% \usepackage[english]{babel}
+\usepackage[UTF8,heading = true]{ctex}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{lipsum}
+\usepackage{zhnumber}
+% 表格
+\usepackage{diagbox}
+\usepackage{makecell}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{fancyhdr} % 页眉页脚
+
+\fancyhf{} % 清除所有页眉页脚
+\pagestyle{fancy}
+\fancypagestyle{plain}{%改变首页
+  \fancyhf{}
+  \cfoot{\thepage}
+  % \fancyhead[C]{大数据机器学习}
+  \renewcommand{\headrulewidth}{0mm} 
+}
+
+\fancyfoot[CO, CE]{\thepage}
+\renewcommand{\headrulewidth}{0mm} 
+% 设置序号格式
+% \renewcommand{\thesection}{\arabic{section}.}
+\renewcommand{\thesection}{\zhnum{section}、 }
+% \renewcommand{\thesubsection}{\zhnum{subsection}、}
+\renewcommand{\thesubsection}{\arabic{subsection}.}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}).}
+% 设置标题的字体
+\titleformat{\section}
+  {\normalfont}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont}{\thesubsection}{1em}{}
+
+% 代码和伪代码支持
+\RequirePackage{minted}
+\RequirePackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{listings}
+\lstset{
+    basicstyle          =   \sffamily,          % 基本代码风格
+    keywordstyle        =   \bfseries,          % 关键字风格
+    commentstyle        =   \rmfamily\itshape,  % 注释的风格，斜体
+    stringstyle         =   \ttfamily,  % 字符串风格
+    flexiblecolumns,                % 别问为什么，加上这个
+    % numbers             =   left,   % 行号的位置在左边
+    showspaces          =   false,  % 是否显示空格，显示了有点乱，所以不现实了
+    % numberstyle         =   \zihao{-5}\ttfamily,    % 行号的样式，小五号，tt等宽字体
+    showstringspaces    =   false,
+    % captionpos          =   t,      % 这段代码的名字所呈现的位置，t指的是top上面
+    % frame               =   lrtb,   % 显示边框
+}
+\lstdefinestyle{Python}{
+    language        =   Python, % 语言选Python
+    basicstyle      =   \zihao{-5}\ttfamily,
+    numberstyle     =   \zihao{-5}\ttfamily,
+    keywordstyle    =   \color{blue},
+    keywordstyle    =   [2] \color{teal},
+    stringstyle     =   \color{magenta},
+    commentstyle    =   \color{red}\ttfamily,
+    breaklines      =   true,   % 自动换行，建议不要写太长的行
+    columns         =   fixed,  % 如果不加这一句，字间距就不固定，很丑，必须加
+    basewidth       =   0.5em,
+}
+
+% 数学支持
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{amsmath}
+\RequirePackage{esint}
+\RequirePackage{gensymb}
+\RequirePackage{mathtools}
+
+% 编号格式
+\usepackage{enumitem}
+
+% 定义定理
+\newtheorem{definition}[theorem]{Definition} 
+
+\title{大数据机器学习第十次理论作业}
+\author{常智星 2024214438}
+\begin{document}
+\maketitle
+
+\section{试求矩阵$A=\left[\begin{matrix}2&4\\1&3\\0&0\\0&0\end{matrix}\right]$的奇异值分解并写出其外积展开式。}
+\subsection{问题分析与相关知识点}
+\subsubsection{奇异值分解}
+矩阵的奇异值分解是指，将一个非零的$m\times n$实矩阵$A$，$A \in R^{m\times n}$，表示为以下三个实矩阵乘积形式的运算，即进行矩阵的因子分解：
+\begin{equation}
+    A = U\Sigma V^\intercal
+\end{equation}
+其中，$U$是$m$阶正交矩阵，$V$是$n$阶正交矩阵，$\Sigma$是由降序排列的非负对焦线元素组成的$m\times n$矩形对角矩阵，满足：
+$$
+U U^\intercal = I
+$$
+$$
+V V^\intercal = I
+$$
+$$
+\Sigma = \diag(\sigma_1,\sigma_2,\cdots,\sigma_p)
+$$
+$$
+\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_p \geq 0
+$$
+$$
+p = \min(m,n)
+$$
+其中，$U\Sigma V^\intercal$称为矩阵的奇异值分解(singular value decomposition, SVD)；$\sigma_i$称为矩阵的奇异值；$U$的列向量称为左奇异向量，$V$的列向量称为右奇异向量。
+\subsubsection{矩阵的基本子空间}
+\begin{enumerate}[label = {\Roman*.}]
+
+\item 向量子空间
+
+若S是向量空间V的非空子集，且S满足以下条件：
+\begin{enumerate}[label = {\roman*.}]
+\item 对任意实数$a$，若$x \in S$，则$ax \in S$；
+
+\item 若$x \in S$且$y \in S$，则$x+y=S$；
+\end{enumerate}
+则S称为V的子空间。
+
+设$v_1,v_2,\cdots,v_n$为向量空间$V$中的向量，则其线性组合
+$$
+a_1v_1+a_2v_2+\cdots+a_nv_n
+$$
+构成$V$的子空间，称$v_1,v_2,\cdots,v_n$张成的子空间，或$v_1,v_2,\cdots,v_n$的张成，记为：
+$$
+\text{span}(v_1,v_2,\cdots,v_n)
+$$
+
+如果$\text{span}\{v_1,v_2,\cdots,v_n\}=V$，则称称$v_1,v_2,\cdots,v_n$张成$V$。
+\item 向量空间的基和维数
+
+向量空间$V$中向量$v_1,v_2,\cdots,v_n$称为空间$V$的基，如果满足条件：
+\begin{enumerate}[label = {\roman*.}]
+\item $v_1,v_2,\cdots,v_n$线性无关；
+
+\item $v_1,v_2,\cdots,v_n$张成$V$；
+\end{enumerate}
+向量空间基的个数即向量空间的维数。
+
+\item 矩阵的行空间和列空间
+
+设$A$为一个$m$行$n$列$m \times n$的矩阵，其每一行可以看作$R^n$中的一个向量，称为A的行向量；类似地，其每一列可以看作$R^m$中的一个向量，称为A的列向量。
+
+设$A$为一个$m$行$n$列$m \times n$的矩阵，则由A的行向量张成的$R^n$的子空间，称为A的行空间；由A的列向量张成的$R^m$的子空间，称为A的列空间。
+
+矩阵A的行空间的维数等于列空间的维数，称为矩阵的秩。
+
+\item 矩阵的零空间
+
+设$A$为一个$m$行$n$列$m \times n$的矩阵，令$N(A)$为齐次方程组$Ax=0$的所有解的集合，则$N(A)$为的$R^n$的一个子空间，称为$A$的零空间(null space)：
+\begin{equation}
+    N(A) = \{x \in R^n|Ax=0\}
+\end{equation}
+
+一个矩阵零空间的维数称为矩阵的零度。
+
+【秩-零度定理】设$A$为一$m\times n$的矩阵，则$A$的秩和$A$的零度之和为$n$。若$A$的秩为$r$，则方程组$Ax=0$的独立变量有$r$个，自由变量有$n-r$个。
+
+\item 子空间的正交补
+
+设$X$和$Y$为$R^n$的子空间。若对每一个$x \in X$和$y \in Y$都满足$x^\intercal y = 0$，则称$X$和$Y$是正交的，记作$X\perp Y$。
+
+令$Y$为$R^n$的子空间，$R^n$中与$Y$中的每一个向量都正交的向量集合记为$Y^\perp$，即
+$$
+Y^\perp = \{x \in R|x^\intercal y =0,\forall y \in Y\}
+$$
+集合$Y^\perp$称为$Y$的正交补。
+
+\item 矩阵的基本子空间
+
+设$A$为一$m\times n$的矩阵，可以把$A$看成是将$R^n$映射到$R^m$的线性变换。一个向量$z \in R^m$在$A$的列空间的充要条件是存在$x \in R^n$，使得$z = Ax$。这样$A$的列空间和$A$的值域是相同的。记$A$的值域为$R(A)$，则：
+\begin{align*}
+    R(A) &= \{x \in R^m|\exists x \in R^n,z=Ax\}\\
+    &=A\text{的列空间}
+\end{align*}
+
+类似地，一个向量$y \in R^n$，$y^\intercal$在$A$的行空间的充要条件是$\exists x \in R^m$，使得$y = A^\intercal x$。这样$A$的行空间和$A^\intercal$的值域$R(A^\intercal)$是相同的。
+\begin{align*}
+    R(A^\intercal) &= \{y \in R^n|\exists x \in R^m,y=A^\intercal x\}\\
+    &=A\text{的行空间}
+\end{align*}
+\item 矩阵的基本子空间
+
+矩阵有4个基本子空间：列空间、行空间、零空间、A的转置的零空间（左零空间），其关系如图1所示。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{juzhenjibenzikongjian.png}
+    \caption{矩阵的基本子空间的关系}
+    \label{fig:my_label}
+\end{figure}
+有下面的定理成立：
+
+【定理1】若$A$为一$m \times n$的矩阵，则$N(A)=R(A^\intercal)^\perp$，且$N(A^\intercal)=R(A)^\perp$。
+\end{enumerate}
+\subsubsection{矩阵奇异值分解的计算}
+\begin{enumerate}[label = {\Roman*.}]
+    \item 求$A^TA$的特征值和特征向量：$$
+    W = A^\intercal A
+    $$
+    $$
+    (W-\lambda I)x=0
+    $$
+    得到特征值$\lambda_i$,并将特征值从大到小排列：
+    $$
+    \lambda_1\geq\lambda_2\geq\cdots\lambda_n\geq0
+    $$
+    并将特征值$\lambda_i(i=1,2,\cdots,n)$代入特征方程求得对应的特征向量。
+    \item 求$n$阶正交矩阵$V$：将特征向量单位化得到单位特征向量$v_1,v_2,\cdots,v_n$，构成n阶正交矩阵$V$:
+    $$
+    V = \left[\begin{matrix}v_1&v_2&\cdots&v_n\end{matrix}\right]
+    $$
+    \item 求$m\times n$对角矩阵$\Sigma$:计算$A$的奇异值：
+    $$
+    \sigma_i = \sqrt{\lambda_i},\quad i =1,2,\cdots,n
+    $$
+    构造$m\times n$对角矩，主对角线元素是奇异值，其余元素为0:
+    $$
+    \Sigma = \text{diag}(\sigma_1,\sigma_2,\cdots,\sigma_n)
+    $$
+    \item 求$m$阶正交矩阵$U$：对$A$的前$r$个正奇异值，令：
+    $$
+    u_j = \frac{1}{\sigma_j}Av_j,\quad j = 1,2,\cdots,r
+    $$
+    得到
+    $$
+    U_1 = \left[\begin{matrix}u_1&u_2&\cdots&u_r\end{matrix}\right]
+    $$
+    求$A^T$的零空间的一组标准正交基$\{u_{r+1},u_{r+2},\cdots,u_m\}$,令
+    $$
+    U_2 = \left[\begin{matrix}u_{r+1}&u_{r+2}&\cdots&u__m\end{matrix}\right]
+    $$
+    并令
+    $$
+    U = \left[\begin{matrix}U_1&U_2\end{matrix}\right]
+    $$
+    \item 得到奇异值分解：
+    $$
+    A = U\Sigma V^\intercal
+    $$
+    
+    
+\end{enumerate}
+\subsubsection{矩阵的外积展开式}
+矩阵的奇异值分解$U\Sigma V^\intercal$也可以由外积形式表示。
+如果把A的奇异值分解，看成矩阵$U\Sigma$和$V^\intercal$的乘积，将$U\Sigma$按列向量分块，将$V^\intercal$按行向量分块，即得到:
+$$
+U\Sigma = \left[\begin{matrix} \sigma_1u_1 & \sigma_2u_2 & \cdots & \sigma_nu_n \end{matrix}\right]
+$$
+$$
+V^\intercal = \left[\begin{matrix}v_1^\intercal \\ v_2^\intercal \\ \vdots \\ v_n^\intercal\end{matrix}\right]
+$$
+则$A$的外积展开式：
+$$
+A = \sigma_1u_1v_1^\intercal+\sigma_2u_2v_2^\intercal+\sigma_n u_n v_n^\intercal
+$$
+即：
+$$
+u_iv_j^\intercal = \left[\begin{matrix}u_{1i} \\ u_{2i} \\ \vdots \\ u_{mi}\end{matrix}\right] \left[\begin{matrix} v_{1j} & v_{2j} & \cdots & v_{nj} \end{matrix}\right]
+ = \left[\begin{matrix}u_{1i}v_{1j} & u_{1i}v_{2j} & \cdots & u_{1i}v_{nj}\\u_{2i}v_{1j} & u_{2i}v_{2j} & \cdots & u_{2i}v_{nj}\\\vdots&\vdots&\vdots&\vdots\\u_{mi}v_{1j} & u_{mi}v_{2j} & \cdots & u_{mi}v_{nj}\end{matrix}\right]
+$$
+$A$的外积展开式也可以写为：
+$$
+A = \sum_{k=1}^n A_k = \sum_{k=1}^n \sigma_k u_k v_k^\intercal
+$$
+由$A$的外积展开式可知，若$A$的秩为$n$，则：
+$$
+A = \sigma_1u_1v_1^\intercal+\sigma_2u_2v_2^\intercal+\sigma_nu_nv_n^\intercal
+$$
+设矩阵
+$$
+A_k = \sigma_1u_1v_1^\intercal+\sigma_2u_2v_2^\intercal+\sigma_k u_k v_k^\intercal
+$$
+则$A_k$的秩为$k$，并且$A_k$是秩为$k$的矩阵在弗罗贝尼乌斯范数意义$A$的最优近似矩阵，矩阵$A_k$就是$A$的截断奇异值分解。
+由于通常奇异值$\sigma_i$递减很快，所以$k$取很小时，$A_k$也能对$A$有很好的近似。
+
+\subsection{问题求解}
+\subsubsection{求矩阵的奇异值分解}
+\begin{enumerate}[label = {\Roman*.}]
+    \item 求$A^\intercal A$的特征值和特征向量：$$
+    A^\intercal A = \left[\begin{matrix}2&1&0\\4&3&0\end{matrix}\right] \left[\begin{matrix}2&4\\1&3\\0&0\\0&0\end{matrix}\right] = \left[\begin{matrix}5&11\\11&25\end{matrix}\right]
+    $$
+    特征值和特征向量满足方程:
+    $$
+    (A^\intercal A-\lambda I)x=0
+    $$
+    得到其次线性方程组：
+    $$
+    \begin{cases}
+    (5-\lambda)x_1 + 11&x_2 = 0\\
+    11x_1 + (25-\lambda)&x_2 = 0
+    \end{cases}
+    $$
+    方程组有解的充要条件是行列式
+    $\begin{vmatrix}5-\lambda&11\\11&25-\lambda\end{vmatrix}=0$
+    
+    即
+    $$
+    (5-\lambda)(25-\lambda)-121=\lambda^2-30\lambda+4=0
+    $$
+    可求解得到特征值$\lambda_i$,并将特征值从大到小排列：
+    $$
+    \lambda_1 = 15+\sqrt{221},\quad \lambda_2 = 15-\sqrt{221}
+    $$
+    为方便计算，使用代码进行后续求解。
+    \item 代码实现
+\lstinputlisting[
+    style       =   Python,
+    label       =   {svd_1.py}
+]{svd_1.py}
+\paragraph{结果}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {svd_1_res.py}
+]{svd_1_res.py}
+\end{enumerate}
+\subsubsection{外积展开式表示}
+根据上面的计算结果可知：
+$$
+\sigma_1 = 5.4650,\quad \sigma_2 = 0.3660
+$$
+$$
+v_1^\intercal = \left[\begin{matrix}0.4046& -0.9145\end{matrix}\right],\quad v_2^T = \left[\begin{matrix}-0.9145&0.4046\end{matrix}\right]
+$$
+$$
+u_1 = \left[\begin{matrix}-0.5213\\-0.4280\end{matrix}\right],\quad u_2 = \left[\begin{matrix}-9.4196\\-5.8152\end{matrix}\right]
+$$
+
+A的外积展开式：
+$$
+A = \sigma_1 u_1 v_1^\intercal +\sigma_2 u_2 v_2^\intercal
+$$
+
+\paragraph{代码实现}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {svd_1_outer.py}
+]{svd_1_outer.py}
+\paragraph{结果}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {svd_1_outer_res.py}
+]{svd_1_outer_res.py}
+
+\newpage
+\section{搜索中的点击数据记录用户搜索时提交的查询语句，点击的网页URL以及点击的次数构成一个二部图，其中一个结点集合$\{q_i\}$表示查询，另一个结点集合$\{u_j\}$表示URL，边表示点击关系，边上的权重表示点击次数。图15.2是一个简化的点击数据例。点击数据可以由矩阵表示，试对该矩阵进行奇异值分解，并解释得到的三个矩阵所表示的内容}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\linewidth]{fig-15-2.png}
+    \label{fig:my_label}
+\end{figure}
+\subsection{问题求解}
+\subsubsection{写出二部图对应的矩阵A}
+$$\quad\quad\quad \begin{matrix}u_1&u_2&u_3&u_4&u_5\end{matrix}
+$$
+$$
+A =\begin{matrix}q_1\\q_2\\q_3\\q_4\end{matrix} \left[\begin{matrix}0&20&5&0&0\\10&0&0&3&0\\0&0&0&0&1\\0&0&1&0&0\end{matrix}\right]
+$$
+\subsubsection{求矩阵A的奇异值分解：}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {svd_2_point.py}
+]{svd_2_point.py}
+\paragraph{结果}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {svd_2_point_res.py}
+]{svd_2_point_res.py}
+\subsubsection{分析3个矩阵代表的含义}
+\begin{enumerate}[label = {\Roman*.}]
+\item 矩阵$\Sigma$：表示每个网页特征的重要程度。
+\item 矩阵$V$：$V$的列向量表示每个URL与每个网页特征之间的关系。
+
+矩阵$V$的第1列表示URL1的第2个特征较显著；第2列表示URL2的第1个特征较显著。
+
+\item 矩阵$U$：$U$的列向量表示每个查询和每个网页特征之间的对应关系。
+
+矩阵$U$的第1列表示第1个查询倾向于第1个特征较显著的URL，即URL2；矩阵U的第2列表示第2个查询倾向于第2个特征较显著的URL，即URL1。
+
+\end{enumerate}
+\end{document}

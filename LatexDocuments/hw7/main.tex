@@ -1,0 +1,301 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+% \usepackage[english]{babel}
+\usepackage[UTF8,heading = true]{ctex}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{lipsum}
+\usepackage{zhnumber}
+% 表格
+\usepackage{diagbox}
+\usepackage{makecell}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{fancyhdr} % 页眉页脚
+
+\fancyhf{} % 清除所有页眉页脚
+\pagestyle{fancy}
+\fancypagestyle{plain}{%改变首页
+  \fancyhf{}
+  \cfoot{\thepage}
+  % \fancyhead[C]{大数据机器学习}
+  \renewcommand{\headrulewidth}{0mm} 
+}
+
+\fancyfoot[CO, CE]{\thepage}
+\renewcommand{\headrulewidth}{0mm} 
+% 设置序号格式
+% \renewcommand{\thesection}{\arabic{section}.}
+% \renewcommand{\thesection}{\arabic{section} }
+\renewcommand{\thesection}{\zhnum{section}、}
+\renewcommand{\thesubsection}{\arabic{subsection}.}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}).}
+% 设置标题的字体
+\titleformat{\section}
+  {\normalfont}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont}{\thesubsection}{1em}{}
+
+% 代码和伪代码支持
+\RequirePackage{minted}
+\RequirePackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{listings}
+\lstset{
+    basicstyle          =   \sffamily,          % 基本代码风格
+    keywordstyle        =   \bfseries,          % 关键字风格
+    commentstyle        =   \rmfamily\itshape,  % 注释的风格，斜体
+    stringstyle         =   \ttfamily,  % 字符串风格
+    flexiblecolumns,                % 别问为什么，加上这个
+    % numbers             =   left,   % 行号的位置在左边
+    showspaces          =   false,  % 是否显示空格，显示了有点乱，所以不现实了
+    % numberstyle         =   \zihao{-5}\ttfamily,    % 行号的样式，小五号，tt等宽字体
+    showstringspaces    =   false,
+    % captionpos          =   t,      % 这段代码的名字所呈现的位置，t指的是top上面
+    % frame               =   lrtb,   % 显示边框
+}
+\lstdefinestyle{Python}{
+    language        =   Python, % 语言选Python
+    basicstyle      =   \zihao{-5}\ttfamily,
+    numberstyle     =   \zihao{-5}\ttfamily,
+    keywordstyle    =   \color{blue},
+    keywordstyle    =   [2] \color{teal},
+    stringstyle     =   \color{magenta},
+    commentstyle    =   \color{red}\ttfamily,
+    breaklines      =   true,   % 自动换行，建议不要写太长的行
+    columns         =   fixed,  % 如果不加这一句，字间距就不固定，很丑，必须加
+    basewidth       =   0.5em,
+}
+
+% 数学支持
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{amsmath}
+\RequirePackage{esint}
+\RequirePackage{gensymb}
+\RequirePackage{mathtools}
+
+\title{大数据机器学习第七次理论作业}
+% \author{}
+\begin{document}
+\maketitle
+
+\section{题目:如例9.1的三硬币模型。假设观测数据不变,试选择不同的初值,例如,$\pi^{(0)}= 0.46,p^{(0)} = 0.55,q^{(0)}=0.67$,求模型参数$\sigma=(\pi,p,q)$的极大似然估计。}
+\begin{quote}
+   例9.1 (三硬币模型) 假设有3枚硬币,分别记作A,B,C. 这些硬币正面出现的概率分别是$\pi,p$和$q$.进行如下掷硬币试验:先掷硬币A,根据其结果选出硬币B或硬币C,正面选硬币B,反面选硬币C;然后掷选出的硬币,掷硬币的结果,出现正面记作1,出现反面记作0:独立地重复n次试验(这里,n=10),观测结果如下:
+\begin{center}
+    1,1,0,1,0,0,1,0,1,1
+\end{center}
+
+假设只能观测到掷硬币的结果,不能观测掷硬币的过程.问如何估计三硬币正面出现的概率,即三硬币模型的参数. 
+\end{quote}
+\subsection{问题分析与相关知识点}
+\subsubsection{EM算法}
+EM算法，用于含有隐变量的概率模型参数的极大似然或极大后验概率估计。每次迭代包括E步和M步。E步：利用当前的参数估计计算隐变量的后验概率（期望）。M步：利用E步计算的隐变量后验概率极大化完整数据的对数似然的新的参数估计，直到收敛。称为期望极大算法（expectation maximization algorithm）。
+\subsubsection{三硬币模型}
+我们用数学公式表达的三硬币模型为：
+
+\begin{equation}
+\begin{align}
+     p(y|\theta)&=\sum_zP(y,z|\theta) = \sum_zP(z|\theta)P(y|z,\theta)\\&=\pi p^y(1=p)^{1-y}+(1-\pi)q^y(1-q)^{1-y}   
+\end{align}  
+\end{equation}
+其中，$y$是观测变量，表示一次实验的结果是1或0；$z$是隐变量，表示未观测到的掷硬币A的结果；$\theta=(\pi,p,q)$是模型参数，这一模型是以上数据的生成模型。（随机变量$y$数据可观测，$z$数据不可观测。）
+
+将观测数据表示为$Y = (Y_1,Y_2,\cdots,Y_n)^T$，未观测数据表示为$Z = (Z_1,Z_2,\cdots,Z_n)^T$。观测数据的对数似然函数：
+\begin{equation}
+\begin{align}
+    L &=\log P(Y|\theta)\\
+      &=\log \prod_{j=1}^n[\pi p^y_j(1=p)^{1-y_j}+(1-\pi)q^y_j(1-q)^{1-y_j}]
+\end{align}
+\end{equation}
+考虑求模型参数$\theta=(\pi,p,q)$的极大似然估计，即：
+\begin{equation}
+    \hat{\theta} = \arg \max_\theta \log P(Y|\theta)
+\end{equation}
+
+由于隐变量的存在，无法直接求解，我们通过EM算法迭代求解。
+
+\begin{enumerate}
+    \item 选取参数初值，$\theta^{(0)} = (
+\pi^{(0)},p^{(0)},q^{(0)})$，然后通过E步和M步迭代计算参数估计只，直至收敛。
+    \item 第i次的参数估计值为$\theta^{(i)} = (
+\pi^{(i)},p^{(i)},q^{(i)})$。
+    \item EM 算法第i+1次迭代如下：
+    \begin{enumerate}
+        \item E步：计算在参数$\pi^{(i)},p^{(i)},q^{(i)}$下，观测数据$y_j$来自掷硬币B的概率。
+    \begin{equation}
+    \mu_j^{(i+1)} = \frac{\pi^{(i)}(p^{(i)})^{y_j}(1-p^{(i)})^{1-y_j}}{\pi^{(i)}(p^{(i)})^{y_j}(1-p^{(i)})^{1-y_j}+(1-\pi^{(i)})(q^{(i)})^{yj}(1-q^{(i)})^{1-y_j}}
+    \end{equation}
+        \item M步：计算模型参数的新估计值。
+    \begin{equation}
+        \pi^{(i+1)} =\frac{1}{n}\sum_{j=1}^n \mu_j^{(i+1)}
+    \end{equation}
+    \begin{equation}
+        p^{(i+1)} =\frac{\sum_{j=1}^n \mu_j^{(i+1)}y_j}{\sum_{j=1}^n \mu_j^{(i+1)}}
+    \end{equation}
+    \begin{equation}
+        q^{(i+1)} =\frac{\sum_{j=1}^n (1-\mu_j^{(i+1)})y_j}{\sum_{j=1}^n (1-\mu_j^{(i+1)})}
+    \end{equation}
+    
+    \end{enumerate}
+
+\end{enumerate}
+
+\subsection{选择初值解答}
+根据题目的要求，选择不同初值进行实验。
+初值取：$\pi^{(0)}= 0.46,p^{(0)} = 0.55,q^{(0)}=0.67$。
+\paragraph{第一轮：}
+由公式（4），有:
+
+$y_j=1$时,
+\[
+\begin{align}
+    \mu_j^{(1)} 
+    &=\frac{0.46 \times 0.55}{0.46 \times 0.55+(1-0.46)\times 0.67}\\
+    &= 0.4115
+\end{align}
+\]
+
+$y_j=0$时,
+\[
+\begin{align}
+    \mu_j^{(1)} 
+    &=\frac{0.46 \times(1-0.55)}{0.46 \times (1-0.55)+(1-0.46)\times (1-0.67)}\\
+    &= 0.5346
+\end{align}
+\]
+
+由公式（5）（6）（7）,有：
+\[
+\pi^{(1)}= 0.4619,p^{(1)} = 0.5346,q^{(1)}=0.6561
+\]
+
+\paragraph{第二轮：}
+由公式（4），有,
+
+$y_j=1$时,
+\[
+    \mu_j^{(2)} =  0.4115
+\]
+
+$y_j=0$时,
+\[
+    \mu_j^{(2)} =  0.5346
+\]
+
+继续迭代，得，
+\[
+\pi^{(2)}= 0.4619,p^{(2)} = 0.5346,q^{(2)}=0.6561
+\]
+\paragraph{得到模型参数的极大似然估计：}
+\[
+\hat \pi = 0.4619,\hat p = 0.5346,\hat q=0.6561.
+\]
+
+
+\subsection{代码验证}
+
+代码实现思路：设置两层循环，外层循环进行E步和M步的迭代，内层循环在E步对观测数据遍历计算$\mu_j$。
+代码实现如下：
+\lstinputlisting[
+    style       =   Python,
+    % caption     =   {\bf decisionstump.py},
+    label       =   {em_3coins.py}
+]{em_3coins.py}
+
+输出结果:
+\lstinputlisting[
+    style       =   Python,
+    % caption     =   {\bf decisionstump.py},
+    label       =   {em_3_coin_res.py}
+]{em_3_coin_res.py}
+\subsection{总结}
+可以发现EM算法与初值的选择有关，选择不同初值得到的参数估计值不同。
+
+
+\section{已知观测数据 -67,-48,6,8,14,16,23,24,28,29,41,49,56,60,75。试估计两个分量的高斯混合模型的5个参数。}
+\subsection{问题分析与相关知识点}
+\subsubsection{高斯混合模型}
+高斯混合模型（Gaussian mixture model）是指具有如下概率分布的模型:
+\begin{equation}
+    P(y|\theta) = \sum_{k=1}^K\alpha_k\phi(y|\theta_k)
+\end{equation}
+其中，$\alpha_k$是系数，$\alpha_k \geq 0，\sum_{k=1}^K\alpha_k=1$；$\phi(y|\theta_k)$是高斯分布密度，$\theta_k = (\mu_k,\sigma_k^2)$
+\begin{equation}
+    \phi(y|\theta_k) = \frac{1}{\sqrt{2\pi}\sigma_k}\exp \left(-\frac{\left(y-\mu_k\right)^2}{2\sigma_k^2}\right)
+\end{equation}
+称为第k个分模型。
+
+假设观测数据$Y = (Y_1,Y_2,\cdots,Y_n)^T$由高斯混合模型生成，
+\[
+P(y|\theta) = \sum_{k=1}^K\alpha_k\phi(y|\theta_k)
+\]
+其中，模型参数$\theta = (\alpha_1,\alpha_2,\cdots,\alpha_k;\theta_1,\theta_2,\cdots,\theta_k)$。
+\subsubsection{高斯混合模型参数估计EM算法：}
+\begin{enumerate}
+    \item 取参数初值开始迭代：
+    \item E步：根据当前的参数，计算分模型$k$对数据$y_j$的响应度$\hat\gamma_{jk}$:
+       \begin{equation}
+           \begin{align}
+               \hat \gamma_{jk}
+               &=E(\gamma_{jk}|y,\theta)
+               =P(\gamma_{jk}=1|y,\theta)\\
+               &=\frac{P(\gamma_{jk}=1,y_j|\theta)}{\sum_{k=1}^K P(\gamma_{jk}=1,y_j|\theta)}\\
+               &=\frac{\alpha_k\phi(y_j|\theta_k)}{\sum_{k=1}^K \alpha_k\phi(y_j|\theta_k)}\\
+               &j = 1,2,\cdots,N; k =1,2,\cdots,K 
+           \end{align}
+       \end{equation}
+   \item M步：求新一轮迭代参数估计值。
+   \begin{equation}
+       \hat \mu_k = \frac{\sum_{j=1}^N \hat\gamma_{jk}y_j}{\sum_{j=1}^N \hat\gamma_{jk}},k=1,2,\cdots,K
+   \end{equation}
+   \begin{equation}
+       \hat \sigma_k^2 = \frac{\sum_{j=1}^N\hat\gamma_{jk}(y_j-\mu_k)^2}{\sum_{j=1}^N \hat\gamma_{jk}},k=1,2,\cdots,K
+   \end{equation}
+   \begin{equation}
+       \hat \alpha_k = \frac{n_k}{N} = \frac{\sum_{j=1}^N\hat\gamma_{jk}}{N},k=1,2,\cdots,K
+   \end{equation}
+   \item 重复(2)E步、(3)M步，直到收敛。
+\end{enumerate}
+\subsubsection{代入问题}
+问题要求估计两个分量的高斯混合模型的5个参数，共有15个数据，即$N = 15,K = 2$，由$\sum_{k=1}^K\alpha_k=1$可得，若第一个模型系数为$\alpha_1$，则第二个模型系数为$\alpha_2 = 1-\alpha_1$。故需要求解的五个参数为，$\theta = (\alpha_1,\sigma_1^2,\sigma_2^2,\mu_1,\mu_2)$。
+\subsection{代码实现}
+代码实现思路：与三硬币模型类似，外层循环进行迭代，E步内层循环遍历数据计算$\hat\gamma_{jk}$，M步更新参数估计值，直至收敛。
+代码实现如下：
+\lstinputlisting[
+    style       =   Python,
+    % caption     =   {\bf decisionstump.py},
+    label       =   {em_gmm.py}
+]{em_gmm.py}
+
+输出结果:
+\lstinputlisting[
+    style       =   Python,
+    % caption     =   {\bf decisionstump.py},
+    label       =   {em_gmm_res.py}
+]{em_gmm_res.py}
+
+\subsection{总结}
+
+初值为$\alpha_1 = 0.5,\sigma^2_1 = 1000,\sigma^2_2 = 1000,\mu_1 = 100,\mu_2 = 100$时，估计的高斯混合模型的五个参数为：
+\[
+\alpha_1 = 0.5,\sigma^2_1 = 1329.6622,\sigma^2_2 = 1329.6622,\mu_1 = 20.9333,\mu_2 = 20.9333
+\]
+
+初值为$\alpha_1 = 0.4,\sigma^2_1 = 100,\sigma^2_2 = 100,\mu_1 = 10,\mu_2 = 10$时，估计的高斯混合模型的五个参数为：
+\[
+\alpha_1 = 0.1191,\sigma^2_1 = 89.7095,\sigma^2_2 = 1103.6395,\mu_1 = -58.2352,\mu_2 = 31.6330
+\]
+
+选择不同初值，参数估计的结果不同。
+在计算时，也有一些初值会导致错误。
+\end{document}
