@@ -1,0 +1,219 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+% \usepackage[english]{babel}
+\usepackage[UTF8,heading = true]{ctex}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{lipsum}
+\usepackage{zhnumber}
+% 表格
+\usepackage{diagbox}
+\usepackage{makecell}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{fancyhdr} % 页眉页脚
+
+\fancyhf{} % 清除所有页眉页脚
+\pagestyle{fancy}
+\fancypagestyle{plain}{%改变首页
+  \fancyhf{}
+  \cfoot{\thepage}
+  % \fancyhead[C]{大数据机器学习}
+  \renewcommand{\headrulewidth}{0mm} 
+}
+
+\fancyfoot[CO, CE]{\thepage}
+\renewcommand{\headrulewidth}{0mm} 
+% 设置序号格式
+% \renewcommand{\thesection}{\arabic{section}.}
+\renewcommand{\thesection}{\arabic{section} }
+% \renewcommand{\thesubsection}{\zhnum{subsection}、}
+\renewcommand{\thesubsection}{\arabic{subsection}.}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}).}
+% 设置标题的字体
+\titleformat{\section}
+  {\normalfont}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont}{\thesubsection}{1em}{}
+
+% 代码和伪代码支持
+\RequirePackage{minted}
+\RequirePackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{listings}
+\lstset{
+    basicstyle          =   \sffamily,          % 基本代码风格
+    keywordstyle        =   \bfseries,          % 关键字风格
+    commentstyle        =   \rmfamily\itshape,  % 注释的风格，斜体
+    stringstyle         =   \ttfamily,  % 字符串风格
+    flexiblecolumns,                % 别问为什么，加上这个
+    % numbers             =   left,   % 行号的位置在左边
+    showspaces          =   false,  % 是否显示空格，显示了有点乱，所以不现实了
+    % numberstyle         =   \zihao{-5}\ttfamily,    % 行号的样式，小五号，tt等宽字体
+    showstringspaces    =   false,
+    % captionpos          =   t,      % 这段代码的名字所呈现的位置，t指的是top上面
+    % frame               =   lrtb,   % 显示边框
+}
+\lstdefinestyle{Python}{
+    language        =   Python, % 语言选Python
+    basicstyle      =   \zihao{-5}\ttfamily,
+    numberstyle     =   \zihao{-5}\ttfamily,
+    keywordstyle    =   \color{blue},
+    keywordstyle    =   [2] \color{teal},
+    stringstyle     =   \color{magenta},
+    commentstyle    =   \color{red}\ttfamily,
+    breaklines      =   true,   % 自动换行，建议不要写太长的行
+    columns         =   fixed,  % 如果不加这一句，字间距就不固定，很丑，必须加
+    basewidth       =   0.5em,
+}
+
+% 数学支持
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{amsmath}
+\RequirePackage{esint}
+\RequirePackage{gensymb}
+\RequirePackage{mathtools}
+
+\title{大数据机器学习第六次理论作业}
+% \author{}
+\begin{document}
+\maketitle
+
+\section{某公司招聘职员考察身体、业务能力、发展潜力这3项。身体分为合格1、不合格0两级，业务能力和发展潜力分为上1、中2、下3三级。分类为合格1不合格-1两级。已知10个人的数据，如下表所示。假设弱分类器为决策树桩。试用AdaBoost算法学习一个强分类器。}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\linewidth]{table1.jpg}
+\end{figure}
+\subsection{相关知识点}
+\subsubsection{弱分类器：决策树桩}
+只要能够找到比随机分类效果略好的分类器，就找到了一个弱分类器。我们可以首先构建一个弱分类器决策树桩进行最基本的二分类。
+
+决策树桩（Decision Stump）也叫做单层决策树，主要通过给定阈值（threshold）进行分类，$x<v$或$x>v$，可以看成一个根节点直接连接两个叶节点的简单决策树。
+\subsubsection{AdaBoost算法学习强分类器}
+我们用:
+\begin{itemize}
+    \item $w_{mi}$表示第i个样本第m轮分类的权重
+    \item $G_m$表示第m个分类器
+    \item $e_m$表示第m个分类器的错误率
+    \item $\alpha_m$表示前m个分类器的权重
+    \item $f_m$表示前m个分类器的线性组合。
+    \item $G_x$表示最终的分类器
+\end{itemize}
+
+AdaBoost算法的输入是：
+\begin{displaymath}
+\begin{split}
+    T=\left\{\left(x_1, y_1\right),\left(x_2, y_2\right), \cdots,\left(x_N, y_N\right)\right\},\\
+    x_i \in \mathcal{X} \subseteq \mathbf{R}^n , y_i \in \mathcal{Y}=\{-1,+1\}
+\end{split}
+\end{displaymath}
+
+输出是：最终的分类器$G_x$。
+
+
+算法的步骤是：
+\begin{itemize}
+\item 初始化训练数据的起始的权值分布，每个数据的权值：$w_{1i} = \frac{1}{N},\quad i =1,2,\cdots,N$
+\item  对m个弱分类器:
+\begin{itemize}
+    \item  得到在权值$D_m$下的训练数据集，得到弱分类器$G_m\left(x\right)$
+    \item 计算$G_m$的训练误差 $e_m = \sum_{i=1}^N P\left(G_m\left(x_i\right) \neq y_i\right)=\sum_{i=1}^N w_{m i}I\left(G_m\left(x_i\right) \neq y_i\right) $
+    \item 计算$G_m$的系数 $\alpha_m=\frac{1}{2} \log \frac{1-e_m}{e_m}$
+    \item 更新训练数据集样本的权值$w_{m+1, i}=\frac{w_{m i}}{Z_m} \exp \left(-\alpha_m y_i G_m\left(x_i\right)\right), \quad i=1,2, \cdots, N$，其中$Z_m=\sum_{i=1}^N w_{m i} \exp \left(-\alpha_m y_i G_m\left(x_i\right)\right)$
+\end{itemize}
+\item 构建规范分类器的线性组合,$f(x) = \sum_{m=1}^M\alpha_mG_m(x)$,得到最终的分类器:$G(x) = sign\left(f\left(x\right)\right)$
+\end{itemize}
+
+
+\subsection{代码实现}
+\subsubsection{弱分类器：决策树桩}
+\paragraph{算法思路：}
+\begin{itemize}
+\item 设最小错误率
+\begin{itemize}
+\item 对数据集的每个特征
+\begin{itemize}
+    \item 对数据集的每个步长
+    \begin{itemsize}
+    \item 对每个不等号,建立一颗决策树并使用加权数据集进行测试，如果当前决策树错误率比最小错误率小，更新当前决策树为最佳决策树
+    \end{itemize}
+    \end{itemize}
+\end{itemize}
+\item 返回最佳决策树桩
+\end{itemize}
+
+\paragraph{代码实现单层决策树桩(参考PPT)：}
+\lstinputlisting[
+    style       =   Python,
+    % caption     =   {\bf decisionstump.py},
+    label       =   {decisionstump.py}
+]{decisionstump.py}
+
+\paragraph{输出结果}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {res_1.py}
+]{res_1.py}
+
+\subsubsection{AdaBoost算法学习强分类器}
+\paragraph{代码实现AdaBoost算法学习强分类器(参考PPT)：}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {adaboost_1.py}
+]{adaboost_1.py}
+\paragraph{输出结果}
+\lstinputlisting[
+    style       =   Python,
+    label       =   {res_2.py}
+]{res_2.py}
+\paragraph{结果表明：}
+以决策树桩作为弱分类器，使用AdaBoost算法学习的强分类器的错误率下降。
+
+
+\section{比较支持向量机、AdaBoost、逻辑斯谛回归模型的学习策略与算法。}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\diagbox{对比方式}{模型} & 支持向量机 & AdaBoost & 逻辑斯谛回归 \\
+\hline 
+特点 & \makecell{可以通过核函数解决\\非线性可分问题} & \makecell{将多个弱分类器按\\权重组合成强分类器}& \makecell{难以处理非线性分类\\问题}\\
+\hline
+学习策略 & 最小间隔最大化 & 加法模型逐一学习基函数 & 极大对数似然函数 \\
+\hline
+算法 & \makecell{SMO算法求解凸二次\\规划对偶问题  } & \makecell{前向分步算法（损失函\\数是指数损失函数）} & \makecell{梯度下降算法、\\牛顿法、拟牛顿法求\\解极大似然估计} \\   
+\hline
+\end{tabular} 
+\end{table}
+
+\subsubsection{相似性与不同点}
+\paragraph{相似性：}
+\begin{itemize}
+    \item 都可用于分类。
+    \item 可以把AdaBoost弱分类器看成SVM的核函数，让AdaBoost模拟最小间隔最大化的过程。SVM的目标是找到让每个支持向量距离超平面间隔不少于1的权值。AdaBoost的目标是优化分类器的权值$\alpha$，通过对弱分类器根据权重组合来构造强分类器。
+    
+\end{itemize}
+
+\paragraph{不同点：}
+高维数据降维后用不同模型分类的决策边界差异如图所示。
+
+
+\begin{itemize}
+    \item AdaBoost通过多个弱分类器的组合，让决策边界更加复杂，处理了难以分类的样本，让分类效果更好。
+    \item 线性核SVM通过最小间隔最大化获得比逻辑斯谛回归的模型更优的效果。
+\end{itemize}
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.1\linewidth]{comparising_adaboost_output.png}
+\end{figure}
+\end{document}
